@@ -303,7 +303,7 @@ function createFilterPresetUI(config, sitePresets, signal) {
 
     exportBtn = document.createElement("button");
     exportBtn.className = "spca-btn spca-btn-primary spca-filter-preset-btn";
-    exportBtn.title = "Exportieren";
+    exportBtn.title = "Gespeichertes Preset exportieren";
     exportBtn.textContent = "📤";
     exportBtn.disabled = !presetSelect.value;
 
