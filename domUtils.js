@@ -538,10 +538,8 @@ function createFilterPresetUI(config, sitePresets, signal, savedPresetName = "")
             });
         };
 
-        // Initialize with saved preset if it exists in the presets list
         if (savedPresetName && sitePresets.some((p) => p.name === savedPresetName)) {
             selectValue(savedPresetName);
-            // Apply the preset selections after binding
             if (onChangeCallback) onChangeCallback(savedPresetName);
         }
     }
@@ -647,7 +645,7 @@ const filterAbortControllers = new Map();
 function createGenericFilter(config) {
     try {
         if (!isExtensionContextValid()) return; // Bail early if context invalidated
-        
+
         if (filterAbortControllers.has(config.containerAttribute)) {
             filterAbortControllers.get(config.containerAttribute).abort();
         }
