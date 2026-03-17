@@ -1,10 +1,17 @@
-const EXTENSION_VERSION = "1.16.0";
+const EXTENSION_VERSION = "1.17.0";
 window.EXTENSION_VERSION = EXTENSION_VERSION;
 
 function showChangelog() {
     const changelogData = {
         currentVersion: EXTENSION_VERSION,
         entries: [
+            {
+                version: "1.17.0",
+                date: "2026-03-17",
+                changes: [
+                    { type: "new", text: "Filter-Presets: Speichere deine Shop-Filter mit Namen und lade sie jederzeit über ein Dropdown" }
+                ]
+            },
             {
                 version: "1.16.0",
                 date: "2026-01-28",

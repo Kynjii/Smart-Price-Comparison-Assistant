@@ -126,6 +126,236 @@ function updateThemeButtonText(button, theme) {
     button.innerHTML = `<img src="${chrome.runtime.getURL(iconFile)}" width="16" height="16" alt="${isDark ? "Dark" : "Light"} mode">`;
 }
 
+function createFilterPresetUI(config, sitePresets) {
+    const presetSection = document.createElement("div");
+    presetSection.className = "spca-filter-preset-section";
+
+    const presetRow = document.createElement("div");
+    presetRow.className = "spca-filter-preset-row";
+
+    const dropdown = document.createElement("div");
+    dropdown.className = "spca-preset-dropdown";
+
+    const trigger = document.createElement("button");
+    trigger.className = "spca-preset-dropdown-trigger";
+    trigger.type = "button";
+
+    const triggerText = document.createElement("span");
+    triggerText.className = "spca-preset-dropdown-text";
+    triggerText.textContent = "Preset auswählen…";
+
+    const triggerArrow = document.createElement("span");
+    triggerArrow.className = "spca-preset-dropdown-arrow";
+    triggerArrow.innerHTML = `<svg width="10" height="10" viewBox="0 0 12 12"><path fill="currentColor" d="M6 8L1 3h10z"/></svg>`;
+
+    trigger.appendChild(triggerText);
+    trigger.appendChild(triggerArrow);
+    dropdown.appendChild(trigger);
+
+    const optionsList = document.createElement("div");
+    optionsList.className = "spca-preset-dropdown-list";
+
+    dropdown.appendChild(optionsList);
+
+    let selectedValue = "";
+
+    function buildOptions(presets) {
+        optionsList.innerHTML = "";
+
+        const defaultItem = document.createElement("div");
+        defaultItem.className = "spca-preset-dropdown-item spca-preset-dropdown-placeholder";
+        defaultItem.dataset.value = "";
+        defaultItem.textContent = "Preset auswählen…";
+        optionsList.appendChild(defaultItem);
+
+        presets.forEach((p) => {
+            const item = document.createElement("div");
+            item.className = "spca-preset-dropdown-item";
+            item.dataset.value = p.name;
+            item.textContent = p.name;
+            if (p.name === selectedValue) item.classList.add("spca-preset-dropdown-active");
+            optionsList.appendChild(item);
+        });
+    }
+
+    function selectValue(value) {
+        selectedValue = value;
+        triggerText.textContent = value || "Preset auswählen…";
+        triggerText.classList.toggle("spca-preset-dropdown-placeholder", !value);
+        deleteBtn.disabled = !value;
+
+        optionsList.querySelectorAll(".spca-preset-dropdown-item").forEach((item) => {
+            item.classList.toggle("spca-preset-dropdown-active", item.dataset.value === value);
+        });
+    }
+
+    function closeDropdown() {
+        dropdown.classList.remove("spca-preset-dropdown-open");
+    }
+
+    trigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle("spca-preset-dropdown-open");
+    });
+
+    optionsList.addEventListener("click", (e) => {
+        const item = e.target.closest(".spca-preset-dropdown-item");
+        if (!item) return;
+        e.stopPropagation();
+        selectValue(item.dataset.value);
+        closeDropdown();
+
+        if (onChangeCallback) onChangeCallback(selectedValue);
+    });
+
+    document.addEventListener("mousedown", (e) => {
+        if (!dropdown.contains(e.target)) closeDropdown();
+    });
+
+    buildOptions(sitePresets);
+
+    let onChangeCallback = null;
+
+    const presetSelect = {
+        get value() {
+            return selectedValue;
+        },
+        set value(v) {
+            selectValue(v);
+        }
+    };
+
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "spca-btn spca-btn-icon spca-filter-preset-btn";
+    saveBtn.title = "Preset speichern";
+    saveBtn.textContent = "💾";
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "spca-btn spca-btn-icon spca-filter-preset-btn spca-filter-preset-delete-btn";
+    deleteBtn.title = "Preset löschen";
+    deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+    deleteBtn.disabled = true;
+
+    presetRow.appendChild(dropdown);
+    presetRow.appendChild(saveBtn);
+    presetRow.appendChild(deleteBtn);
+    presetSection.appendChild(presetRow);
+
+    const saveRow = document.createElement("div");
+    saveRow.className = "spca-filter-preset-save-row";
+    saveRow.style.display = "none";
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.className = "spca-filter-preset-input";
+    nameInput.placeholder = "Name eingeben…";
+    nameInput.maxLength = 40;
+
+    const confirmBtn = document.createElement("button");
+    confirmBtn.className = "spca-btn spca-btn-primary spca-filter-preset-btn";
+    confirmBtn.title = "Speichern";
+    confirmBtn.textContent = "✓";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.className = "spca-btn spca-btn-secondary spca-filter-preset-btn";
+    cancelBtn.title = "Abbrechen";
+    cancelBtn.textContent = "×";
+
+    saveRow.appendChild(nameInput);
+    saveRow.appendChild(confirmBtn);
+    saveRow.appendChild(cancelBtn);
+    presetSection.appendChild(saveRow);
+
+    function refreshPresetDropdown(presets) {
+        buildOptions(presets);
+        selectValue("");
+    }
+
+    saveBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isVisible = saveRow.style.display === "flex";
+        saveRow.style.display = isVisible ? "none" : "flex";
+        if (!isVisible) {
+            nameInput.value = presetSelect.value;
+            nameInput.focus();
+            nameInput.select();
+        }
+    });
+
+    cancelBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        saveRow.style.display = "none";
+        nameInput.value = "";
+    });
+
+    nameInput.addEventListener("keydown", (e) => {
+        e.stopPropagation();
+        if (e.key === "Enter") confirmBtn.click();
+        if (e.key === "Escape") cancelBtn.click();
+    });
+
+    deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const selectedName = presetSelect.value;
+        if (!selectedName) return;
+
+        chrome.storage.local.get(["filterPresets"], (res) => {
+            const all = res.filterPresets || {};
+            const list = all[config.selectionsStorageKey] || [];
+            all[config.selectionsStorageKey] = list.filter((p) => p.name !== selectedName);
+            chrome.storage.local.set({ filterPresets: all }, () => {
+                refreshPresetDropdown(all[config.selectionsStorageKey]);
+            });
+        });
+    });
+
+    function bindToFilter(checkboxList, updateFilter) {
+        confirmBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const presetName = nameInput.value.trim() || presetSelect.value;
+            if (!presetName) return;
+
+            const currentSelections = Array.from(checkboxList.querySelectorAll('input[type="checkbox"]:checked')).map((cb) => cb.value);
+
+            chrome.storage.local.get(["filterPresets"], (res) => {
+                const all = res.filterPresets || {};
+                const list = all[config.selectionsStorageKey] || [];
+                const existing = list.findIndex((p) => p.name === presetName);
+                if (existing >= 0) {
+                    list[existing].selections = currentSelections;
+                } else {
+                    list.push({ name: presetName, selections: currentSelections });
+                }
+                all[config.selectionsStorageKey] = list;
+                chrome.storage.local.set({ filterPresets: all }, () => {
+                    buildOptions(list);
+                    selectValue(presetName);
+                    saveRow.style.display = "none";
+                    nameInput.value = "";
+                });
+            });
+        });
+
+        onChangeCallback = (selectedName) => {
+            if (!selectedName) return;
+
+            chrome.storage.local.get(["filterPresets"], (res) => {
+                const all = res.filterPresets || {};
+                const list = all[config.selectionsStorageKey] || [];
+                const preset = list.find((p) => p.name === selectedName);
+                if (!preset) return;
+
+                checkboxList.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+                    cb.checked = preset.selections.includes(cb.value);
+                });
+                updateFilter();
+            });
+        };
+    }
+
+    return { element: presetSection, bindToFilter };
+}
+
 function createGenericFilter(config) {
     try {
         const productCards = config.getProductCards();
@@ -145,9 +375,11 @@ function createGenericFilter(config) {
         const oldIcon = document.querySelector(`[${config.iconAttribute}="true"]`);
         if (oldIcon) oldIcon.remove();
 
-        chrome.storage.local.get([config.openStorageKey, config.selectionsStorageKey], (result) => {
+        chrome.storage.local.get([config.openStorageKey, config.selectionsStorageKey, "filterPresets"], (result) => {
             const savedOpen = result[config.openStorageKey] || false;
             const savedSelections = result[config.selectionsStorageKey] || [];
+            const allPresets = result.filterPresets || {};
+            const sitePresets = allPresets[config.selectionsStorageKey] || [];
 
             const allItemNames = new Set([...itemNames, ...savedSelections]);
 
@@ -183,6 +415,9 @@ function createGenericFilter(config) {
                 titleContainer.appendChild(countDisplay);
 
                 header.appendChild(titleContainer);
+
+                const presetUI = createFilterPresetUI(config, sitePresets);
+                header.appendChild(presetUI.element);
 
                 const main = document.createElement("div");
                 main.className = "spca-filter-main";
@@ -260,6 +495,7 @@ function createGenericFilter(config) {
                     });
                 }
                 checkboxList.addEventListener("change", updateFilter);
+                presetUI.bindToFilter(checkboxList, updateFilter);
                 updateFilter();
 
                 if (savedOpen) {

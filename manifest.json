@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Smart Price Comparison Assistant",
-    "version": "1.16.0",
+    "version": "1.17.0",
     "description": "Intelligent price comparison across Amazon, Idealo, Breuninger, and MyDealz with similarity matching, filtering, and Slack integration for smart shopping decisions.",
     "icons": {
         "16": "assets/web/icon-192.png",
