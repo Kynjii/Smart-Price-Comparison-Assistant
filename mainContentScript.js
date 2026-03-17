@@ -109,7 +109,10 @@
 })();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "showChangelog") {
+    if (message.action === "ping") {
+        // Simple ping to check if content script context is still valid
+        sendResponse({ success: true });
+    } else if (message.action === "showChangelog") {
         if (window.spca?.showChangelog) {
             window.spca.showChangelog();
         }

@@ -5,12 +5,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveSlackBtn = document.getElementById("saveSlackBtn");
     const slackStatus = document.getElementById("slackStatus");
     const changelogBtn = document.getElementById("showChangelogBtn");
+    const contextWarning = document.getElementById("contextWarning");
 
     const MASKED_URL = "*************";
     let hasExistingUrl = false;
 
     const manifest = chrome.runtime.getManifest();
     versionEl.textContent = `v${manifest.version}`;
+
+    // Check if content script context is valid on active tab
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]?.id) {
+            chrome.tabs.sendMessage(tabs[0].id, { action: "ping" })
+                .then(() => {
+                    // Context is valid, hide warning and clear badge
+                    contextWarning.style.display = "none";
+                    chrome.action.setBadgeText({ tabId: tabs[0].id, text: "" });
+                })
+                .catch(() => {
+                    // Context invalid or no content script - show warning if it's a supported page
+                    const url = tabs[0].url || "";
+                    if (url.includes("idealo.de") || url.includes("mydealz.de") || url.includes("amazon.")) {
+                        contextWarning.style.display = "flex";
+                        // Show warning badge on extension icon
+                        chrome.action.setBadgeText({ tabId: tabs[0].id, text: "!" });
+                        chrome.action.setBadgeBackgroundColor({ tabId: tabs[0].id, color: "#f59e0b" });
+                    }
+                });
+        }
+    });
 
     chrome.storage.local.get(["selectedTheme", "slackWebhookUrl"], (result) => {
         const currentTheme = result.selectedTheme || "light";

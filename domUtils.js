@@ -1,10 +1,46 @@
+function isExtensionContextValid() {
+    try {
+        return !!(chrome.runtime && chrome.runtime.id);
+    } catch {
+        return false;
+    }
+}
+
+function safeGetURL(path) {
+    if (!isExtensionContextValid()) return "";
+    try {
+        return chrome.runtime.getURL(path);
+    } catch {
+        return "";
+    }
+}
+
+function safeStorageGet(keys, callback) {
+    if (!isExtensionContextValid()) return;
+    try {
+        chrome.storage.local.get(keys, callback);
+    } catch (e) {
+        console.debug("Extension context invalidated during storage get");
+    }
+}
+
+function safeStorageSet(data, callback) {
+    if (!isExtensionContextValid()) return;
+    try {
+        chrome.storage.local.set(data, callback);
+    } catch (e) {
+        console.debug("Extension context invalidated during storage set");
+    }
+}
+
 function createFilterIcon(dataAttribute, openTitle = "Offen", closeTitle = "Schließen") {
+    if (!isExtensionContextValid()) return null;
     const iconBtn = document.createElement("button");
     iconBtn.setAttribute(dataAttribute, "true");
     iconBtn.setAttribute("data-extension-ui", "true");
     iconBtn.title = openTitle;
     iconBtn.classList.add("spca-filter-icon");
-    iconBtn.innerHTML = `<img src="${chrome.runtime.getURL("assets/logo.png")}" alt="">`;
+    iconBtn.innerHTML = `<img src="${safeGetURL("assets/logo.png")}" alt="">`;
     document.body.appendChild(iconBtn);
 
     iconBtn.addEventListener("click", (e) => {
@@ -24,7 +60,7 @@ function addIdealoButton(titleElement, searchTerms, fontSize = "1rem") {
 
     const idealoButton = document.createElement("a");
     idealoButton.classList.add("spca-idealo-search-button");
-    idealoButton.innerHTML = `<img src="${chrome.runtime.getURL("assets/search.png")}" alt=""> Suche auf Idealo`;
+    idealoButton.innerHTML = `<img src="${safeGetURL("assets/search.png")}" alt=""> Suche auf Idealo`;
     idealoButton.href = `https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q=${searchQuery}`;
     idealoButton.target = "_blank";
 
@@ -46,12 +82,12 @@ function createThemeSelector() {
     const updateChangelogIcon = (theme) => {
         const isDark = theme === "dark";
         const iconFile = isDark ? "assets/changelog_white.png" : "assets/changelog.png";
-        changelogBtn.innerHTML = `<img src="${chrome.runtime.getURL(iconFile)}" width="16" height="16" alt="Changelog">`;
+        changelogBtn.innerHTML = `<img src="${safeGetURL(iconFile)}" width="16" height="16" alt="Changelog">`;
     };
 
     const themeBtn = createThemeButton(updateChangelogIcon);
 
-    chrome.storage.local.get(["selectedTheme", "lastChangelogViewed"], (result) => {
+    safeStorageGet(["selectedTheme", "lastChangelogViewed"], (result) => {
         const theme = result.selectedTheme || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
         updateChangelogIcon(theme);
         if (result.lastChangelogViewed !== window.EXTENSION_VERSION) {
@@ -83,22 +119,22 @@ function createThemeButton(onThemeChange) {
     const updateIcon = (theme) => {
         const isDark = theme === "dark";
         const iconFile = isDark ? "assets/darkmode_white.png" : "assets/lightmode.png";
-        themeBtn.innerHTML = `<img src="${chrome.runtime.getURL(iconFile)}" width="16" height="16" alt="${isDark ? "Dark" : "Light"} mode">`;
+        themeBtn.innerHTML = `<img src="${safeGetURL(iconFile)}" width="16" height="16" alt="${isDark ? "Dark" : "Light"} mode">`;
     };
 
-    chrome.storage.local.get(["selectedTheme"], (result) => {
+    safeStorageGet(["selectedTheme"], (result) => {
         const theme = result.selectedTheme || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
         updateIcon(theme);
     });
 
     themeBtn.addEventListener("click", () => {
-        chrome.storage.local.get(["selectedTheme"], (result) => {
+        safeStorageGet(["selectedTheme"], (result) => {
             const currentTheme = result.selectedTheme || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
             const themes = ["light", "dark"];
             const currentIndex = themes.indexOf(currentTheme);
             const nextTheme = themes[(currentIndex + 1) % themes.length];
 
-            chrome.storage.local.set({ selectedTheme: nextTheme });
+            safeStorageSet({ selectedTheme: nextTheme });
             updateIcon(nextTheme);
 
             if (typeof onThemeChange === "function") {
@@ -123,7 +159,7 @@ function createThemeButton(onThemeChange) {
 function updateThemeButtonText(button, theme) {
     const isDark = theme === "dark";
     const iconFile = isDark ? "assets/darkmode_white.png" : "assets/lightmode.png";
-    button.innerHTML = `<img src="${chrome.runtime.getURL(iconFile)}" width="16" height="16" alt="${isDark ? "Dark" : "Light"} mode">`;
+    button.innerHTML = `<img src="${safeGetURL(iconFile)}" width="16" height="16" alt="${isDark ? "Dark" : "Light"} mode">`;
 }
 
 function showImportExportStatus(container, message) {
@@ -352,11 +388,11 @@ function createFilterPresetUI(config, sitePresets, signal) {
         const selectedName = presetSelect.value;
         if (!selectedName) return;
 
-        chrome.storage.local.get(["filterPresets"], (res) => {
+        safeStorageGet(["filterPresets"], (res) => {
             const all = res.filterPresets || {};
             const list = all[config.selectionsStorageKey] || [];
             all[config.selectionsStorageKey] = list.filter((p) => p.name !== selectedName);
-            chrome.storage.local.set({ filterPresets: all }, () => {
+            safeStorageSet({ filterPresets: all }, () => {
                 refreshPresetDropdown(all[config.selectionsStorageKey]);
             });
         });
@@ -384,7 +420,7 @@ function createFilterPresetUI(config, sitePresets, signal) {
         const selectedName = presetSelect.value;
         if (!selectedName) return;
 
-        chrome.storage.local.get(["filterPresets"], (res) => {
+        safeStorageGet(["filterPresets"], (res) => {
             const all = res.filterPresets || {};
             const list = all[config.selectionsStorageKey] || [];
             const preset = list.find((p) => p.name === selectedName);
@@ -393,14 +429,19 @@ function createFilterPresetUI(config, sitePresets, signal) {
             const encoded = btoa(unescape(encodeURIComponent(JSON.stringify({ name: preset.name, selections: preset.selections }))));
             importExportInput.value = encoded;
             importExportInput.select();
-            navigator.clipboard.writeText(encoded).then(() => {
-                const orig = exportBtn.textContent;
-                exportBtn.textContent = "\u2713";
-                showImportExportStatus(importExportRow, "In Zwischenablage kopiert!");
-                setTimeout(() => { exportBtn.textContent = orig; }, 1500);
-            }).catch(() => {
-                showImportExportStatus(importExportRow, "Bitte manuell kopieren");
-            });
+            navigator.clipboard
+                .writeText(encoded)
+                .then(() => {
+                    const orig = exportBtn.textContent;
+                    exportBtn.textContent = "\u2713";
+                    showImportExportStatus(importExportRow, "In Zwischenablage kopiert!");
+                    setTimeout(() => {
+                        exportBtn.textContent = orig;
+                    }, 1500);
+                })
+                .catch(() => {
+                    showImportExportStatus(importExportRow, "Bitte manuell kopieren");
+                });
         });
     });
 
@@ -424,7 +465,7 @@ function createFilterPresetUI(config, sitePresets, signal) {
             return;
         }
 
-        chrome.storage.local.get(["filterPresets"], (res) => {
+        safeStorageGet(["filterPresets"], (res) => {
             const all = res.filterPresets || {};
             const list = all[config.selectionsStorageKey] || [];
             const existing = list.findIndex((p) => p.name === parsed.name);
@@ -434,7 +475,7 @@ function createFilterPresetUI(config, sitePresets, signal) {
                 list.push({ name: parsed.name, selections: parsed.selections });
             }
             all[config.selectionsStorageKey] = list;
-            chrome.storage.local.set({ filterPresets: all }, () => {
+            safeStorageSet({ filterPresets: all }, () => {
                 buildOptions(list);
                 selectValue(parsed.name);
                 importExportRow.style.display = "none";
@@ -457,7 +498,7 @@ function createFilterPresetUI(config, sitePresets, signal) {
 
             const currentSelections = Array.from(checkboxList.querySelectorAll('input[type="checkbox"]:checked')).map((cb) => cb.value);
 
-            chrome.storage.local.get(["filterPresets"], (res) => {
+            safeStorageGet(["filterPresets"], (res) => {
                 const all = res.filterPresets || {};
                 const list = all[config.selectionsStorageKey] || [];
                 const existing = list.findIndex((p) => p.name === presetName);
@@ -467,7 +508,7 @@ function createFilterPresetUI(config, sitePresets, signal) {
                     list.push({ name: presetName, selections: currentSelections });
                 }
                 all[config.selectionsStorageKey] = list;
-                chrome.storage.local.set({ filterPresets: all }, () => {
+                safeStorageSet({ filterPresets: all }, () => {
                     buildOptions(list);
                     selectValue(presetName);
                     saveRow.style.display = "none";
@@ -479,7 +520,7 @@ function createFilterPresetUI(config, sitePresets, signal) {
         onChangeCallback = (selectedName) => {
             if (!selectedName) return;
 
-            chrome.storage.local.get(["filterPresets"], (res) => {
+            safeStorageGet(["filterPresets"], (res) => {
                 const all = res.filterPresets || {};
                 const list = all[config.selectionsStorageKey] || [];
                 const preset = list.find((p) => p.name === selectedName);
@@ -593,6 +634,8 @@ const filterAbortControllers = new Map();
 
 function createGenericFilter(config) {
     try {
+        if (!isExtensionContextValid()) return; // Bail early if context invalidated
+        
         if (filterAbortControllers.has(config.containerAttribute)) {
             filterAbortControllers.get(config.containerAttribute).abort();
         }
@@ -616,7 +659,7 @@ function createGenericFilter(config) {
         const oldIcon = document.querySelector(`[${config.iconAttribute}="true"]`);
         if (oldIcon) oldIcon.remove();
 
-        chrome.storage.local.get([config.openStorageKey, config.selectionsStorageKey, "filterPresets"], (result) => {
+        safeStorageGet([config.openStorageKey, config.selectionsStorageKey, "filterPresets"], (result) => {
             const savedOpen = result[config.openStorageKey] || false;
             const savedSelections = result[config.selectionsStorageKey] || [];
             const allPresets = result.filterPresets || {};
@@ -625,6 +668,7 @@ function createGenericFilter(config) {
             const allItemNames = new Set([...itemNames, ...savedSelections]);
 
             const iconBtn = createFilterIcon(config.iconAttribute, "Offen", "Schließen");
+            if (!iconBtn) return; // Extension context invalidated
 
             if (allItemNames.size > 0) {
                 let filterContainer = document.createElement("div");
@@ -633,7 +677,7 @@ function createGenericFilter(config) {
                 filterContainer.className = "spca-filter-container spca-filter-positioned";
                 filterContainer.style.display = "none";
 
-                chrome.storage.local.get(["selectedTheme"], (result) => {
+                safeStorageGet(["selectedTheme"], (result) => {
                     const theme = result.selectedTheme || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
                     filterContainer.classList.remove("spca-theme-light", "spca-theme-dark");
                     filterContainer.classList.add(`spca-theme-${theme}`);
@@ -730,7 +774,7 @@ function createGenericFilter(config) {
                     const checked = Array.from(checkboxList.querySelectorAll('input[type="checkbox"]:checked')).map((cb) => cb.value);
                     const storageUpdate = {};
                     storageUpdate[config.selectionsStorageKey] = checked;
-                    chrome.storage.local.set(storageUpdate);
+                    safeStorageSet(storageUpdate);
 
                     productCards.forEach((card) => {
                         if (checked.length === 0 || checked.includes(cardItemMap.get(card))) {
@@ -773,7 +817,7 @@ function createGenericFilter(config) {
                         iconBtn.title = "Schließen";
                         storageUpdate[config.openStorageKey] = true;
                     }
-                    chrome.storage.local.set(storageUpdate);
+                    safeStorageSet(storageUpdate);
                 });
 
                 closeBtn.addEventListener("click", () => {
@@ -785,7 +829,7 @@ function createGenericFilter(config) {
                     iconBtn.title = "Offen";
                     const storageUpdate = {};
                     storageUpdate[config.openStorageKey] = false;
-                    chrome.storage.local.set(storageUpdate);
+                    safeStorageSet(storageUpdate);
                 });
 
                 document.addEventListener(
@@ -803,7 +847,7 @@ function createGenericFilter(config) {
                             iconBtn.title = "Offen";
                             const storageUpdate = {};
                             storageUpdate[config.openStorageKey] = false;
-                            chrome.storage.local.set(storageUpdate);
+                            safeStorageSet(storageUpdate);
                         }
                     },
                     { signal: abortController.signal }

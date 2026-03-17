@@ -1,10 +1,19 @@
-const EXTENSION_VERSION = "1.17.0";
+const EXTENSION_VERSION = "1.17.1";
 window.EXTENSION_VERSION = EXTENSION_VERSION;
 
 function showChangelog() {
     const changelogData = {
         currentVersion: EXTENSION_VERSION,
         entries: [
+            {
+                version: "1.17.1",
+                date: "2026-03-17",
+                changes: [
+                    { type: "fix", text: "Behoben: 'Extension context invalidated' Fehler nach Erweiterungs-Update" },
+                    { type: "new", text: "Warnung im Popup wenn Seite neu geladen werden muss" },
+                    { type: "new", text: "Warn-Badge auf dem Erweiterungs-Icon bei ungültigem Kontext" }
+                ]
+            },
             {
                 version: "1.17.0",
                 date: "2026-03-17",

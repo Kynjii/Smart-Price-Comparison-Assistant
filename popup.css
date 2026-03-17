@@ -225,6 +225,32 @@ body {
     background: var(--popup-gray-50);
 }
 
+.popup-warning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #fef3cd;
+    border-bottom: 1px solid #f0d77b;
+    color: #856404;
+    font-size: 12px;
+}
+
+.popup-warning-icon {
+    flex-shrink: 0;
+    font-size: 10px;
+}
+
+.popup-warning-text {
+    flex: 1;
+}
+
+body.dark .popup-warning {
+    background: #3d3200;
+    border-color: #5c4d00;
+    color: #ffc107;
+}
+
 body.dark {
     background: #1f2937;
     color: #f3f4f6;
@@ -268,6 +294,14 @@ body.dark .popup-btn-secondary {
     background: #374151;
     border-color: #4b5563;
     color: #e5e7eb;
+}
+
+body.dark .popup-btn-secondary .popup-btn-icon {
+    filter: brightness(0) invert(1);
+}
+
+body.dark .theme-btn:not(.active) .theme-icon {
+    filter: brightness(0) invert(1);
 }
 
 body.dark .popup-btn-secondary:hover {
