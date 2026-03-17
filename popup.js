@@ -16,7 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Check if content script context is valid on active tab
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]?.id) {
-            chrome.tabs.sendMessage(tabs[0].id, { action: "ping" })
+            chrome.tabs
+                .sendMessage(tabs[0].id, { action: "ping" })
                 .then(() => {
                     // Context is valid, hide warning and clear badge
                     contextWarning.style.display = "none";
@@ -123,16 +124,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     changelogBtn.addEventListener("click", async () => {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
         if (tab) {
-            chrome.tabs.sendMessage(tab.id, { action: "showChangelog" }).catch(() => {
+            try {
+                await chrome.tabs.sendMessage(tab.id, { action: "showChangelog" });
+                window.close();
+            } catch {
                 slackStatus.textContent = "Öffne eine unterstützte Seite";
                 slackStatus.className = "popup-hint";
                 setTimeout(() => {
                     slackStatus.textContent = "";
                 }, 2000);
-            });
-            window.close();
+            }
         }
     });
 });
