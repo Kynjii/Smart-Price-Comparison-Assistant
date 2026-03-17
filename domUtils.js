@@ -172,7 +172,7 @@ function showImportExportStatus(container, message) {
     setTimeout(() => status.remove(), 2000);
 }
 
-function createFilterPresetUI(config, sitePresets, signal) {
+function createFilterPresetUI(config, sitePresets, signal, savedPresetName = "") {
     const presetSection = document.createElement("div");
     presetSection.className = "spca-filter-preset-section";
 
@@ -203,8 +203,9 @@ function createFilterPresetUI(config, sitePresets, signal) {
 
     dropdown.appendChild(optionsList);
 
-    let selectedValue = "";
+    let selectedValue = savedPresetName;
     let exportBtn = null;
+    const presetStorageKey = `lastSelectedPreset_${config.selectionsStorageKey}`;
 
     function buildOptions(presets) {
         optionsList.innerHTML = "";
@@ -251,6 +252,10 @@ function createFilterPresetUI(config, sitePresets, signal) {
         e.stopPropagation();
         selectValue(item.dataset.value);
         closeDropdown();
+
+        const storageUpdate = {};
+        storageUpdate[presetStorageKey] = selectedValue;
+        safeStorageSet(storageUpdate);
 
         if (onChangeCallback) onChangeCallback(selectedValue);
     });
@@ -532,6 +537,13 @@ function createFilterPresetUI(config, sitePresets, signal) {
                 updateFilter();
             });
         };
+
+        // Initialize with saved preset if it exists in the presets list
+        if (savedPresetName && sitePresets.some((p) => p.name === savedPresetName)) {
+            selectValue(savedPresetName);
+            // Apply the preset selections after binding
+            if (onChangeCallback) onChangeCallback(savedPresetName);
+        }
     }
 
     return { element: presetSection, bindToFilter };
@@ -659,11 +671,13 @@ function createGenericFilter(config) {
         const oldIcon = document.querySelector(`[${config.iconAttribute}="true"]`);
         if (oldIcon) oldIcon.remove();
 
-        safeStorageGet([config.openStorageKey, config.selectionsStorageKey, "filterPresets"], (result) => {
+        const presetStorageKey = `lastSelectedPreset_${config.selectionsStorageKey}`;
+        safeStorageGet([config.openStorageKey, config.selectionsStorageKey, "filterPresets", presetStorageKey], (result) => {
             const savedOpen = result[config.openStorageKey] || false;
             const savedSelections = result[config.selectionsStorageKey] || [];
             const allPresets = result.filterPresets || {};
             const sitePresets = allPresets[config.selectionsStorageKey] || [];
+            const savedPresetName = result[presetStorageKey] || "";
 
             const allItemNames = new Set([...itemNames, ...savedSelections]);
 
@@ -701,7 +715,7 @@ function createGenericFilter(config) {
 
                 header.appendChild(titleContainer);
 
-                const presetUI = createFilterPresetUI(config, sitePresets, abortController.signal);
+                const presetUI = createFilterPresetUI(config, sitePresets, abortController.signal, savedPresetName);
                 header.appendChild(presetUI.element);
 
                 const main = document.createElement("div");

@@ -1,10 +1,17 @@
-const EXTENSION_VERSION = "1.17.1";
+const EXTENSION_VERSION = "1.17.2";
 window.EXTENSION_VERSION = EXTENSION_VERSION;
 
 function showChangelog() {
     const changelogData = {
         currentVersion: EXTENSION_VERSION,
         entries: [
+            {
+                version: "1.17.2",
+                date: "2026-03-17",
+                changes: [
+                    { type: "new", text: "Letzte Preset-Auswahl wird zwischen Seitenaufrufen gespeichert (pro Seite)" }
+                ]
+            },
             {
                 version: "1.17.1",
                 date: "2026-03-17",
