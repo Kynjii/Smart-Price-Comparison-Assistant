@@ -9,7 +9,11 @@ function showChangelog() {
                 version: "1.17.0",
                 date: "2026-03-17",
                 changes: [
-                    { type: "new", text: "Filter-Presets: Speichere deine Shop-Filter mit Namen und lade sie jederzeit über ein Dropdown" }
+                    { type: "new", text: "Filter-Presets: Speichere deine Shop-Filter mit Namen und lade sie jederzeit über ein Dropdown" },
+                    { type: "new", text: "Preset Import/Export: Teile deine Shop-Filter-Presets als kopierbaren Text-String" },
+                    { type: "new", text: "Trending Searches: Beliebte Suchbegriffe direkt im Shop-Filter auf Idealo, sortierbar nach Beliebtheit oder Anstieg" },
+                    { type: "improve", text: "Preset-Eingabefeld zeigt jetzt 'Save new preset' als Platzhaltertext" },
+                    { type: "fix", text: "Filter-Header hat jetzt korrekte abgerundete Ecken" }
                 ]
             },
             {
