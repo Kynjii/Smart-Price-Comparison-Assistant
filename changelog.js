@@ -1,4 +1,4 @@
-const EXTENSION_VERSION = "1.17.2";
+const EXTENSION_VERSION = "1.18.0";
 window.EXTENSION_VERSION = EXTENSION_VERSION;
 
 function showChangelog() {
@@ -6,11 +6,14 @@ function showChangelog() {
         currentVersion: EXTENSION_VERSION,
         entries: [
             {
+                version: "1.18.0",
+                date: "2026-06-08",
+                changes: [{ type: "new", text: "Such-Trends Rangliste: Neue Podium-Ansicht der beliebtesten Idealo-Suchbegriffe — sortierbar nach Beliebtheit oder Trend-Anstieg, mit direkten Links zur Idealo-Suche" }]
+            },
+            {
                 version: "1.17.2",
                 date: "2026-03-17",
-                changes: [
-                    { type: "new", text: "Letzte Preset-Auswahl wird zwischen Seitenaufrufen gespeichert (pro Seite)" }
-                ]
+                changes: [{ type: "new", text: "Letzte Preset-Auswahl wird zwischen Seitenaufrufen gespeichert (pro Seite)" }]
             },
             {
                 version: "1.17.1",

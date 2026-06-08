@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Smart Price Comparison Assistant",
-    "version": "1.17.2",
+    "version": "1.18.0",
     "description": "Intelligent price comparison across Amazon, Idealo, Breuninger, and MyDealz with similarity matching, filtering, and Slack integration for smart shopping decisions.",
     "icons": {
         "16": "assets/web/icon-192.png",
@@ -32,7 +32,7 @@
         },
         {
             "matches": ["https://www.idealo.de/preisvergleich/ProductCategory/*", "https://www.idealo.de/preisvergleich/deals/*", "https://www.idealo.de/preisvergleich/OffersOfProduct/*", "https://www.mydealz.de/*", "https://www.idealo.de/preisvergleich/MainSearchProductCategory.html*"],
-            "js": ["theme.js", "textUtils.js", "priceUtils.js", "domUtils.js", "changelog.js", "similarityEngine.js", "siteHandlers.js", "mydealzFilter.js", "idealoFilter.js", "priceChartDetection.js", "priceChartModal.js", "idealoComparison.js", "mainContentScript.js"],
+            "js": ["theme.js", "textUtils.js", "priceUtils.js", "domUtils.js", "changelog.js", "similarityEngine.js", "siteHandlers.js", "mydealzFilter.js", "idealoFilter.js", "priceChartDetection.js", "priceChartModal.js", "idealoComparison.js", "idealoTrends.js", "mainContentScript.js"],
             "css": ["content-styles.css"],
             "run_at": "document_idle"
         }

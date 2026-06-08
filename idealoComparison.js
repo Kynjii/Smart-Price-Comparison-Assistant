@@ -332,6 +332,16 @@ function createNavButtons(highestMatch, lowestPriceDiff) {
         container.appendChild(createDealButton(lowestPriceDiff.element));
     }
 
+    // Add leaderboard button if the trends module is loaded
+    if (typeof window.spca !== "undefined" && typeof window.spca.showTrendLeaderboard === "function") {
+        if (!document.querySelector('[data-leaderboard-btn="true"]')) {
+            const lbBtn = createNavButtonWithIcon("\u{1F3C6}", "Rangliste", "spca-nav-button--leaderboard");
+            lbBtn.setAttribute("data-leaderboard-btn", "true");
+            lbBtn.addEventListener("click", () => window.spca.showTrendLeaderboard());
+            container.appendChild(lbBtn);
+        }
+    }
+
     if (!document.querySelector('[data-expand-all="true"]')) {
         container.appendChild(createExpandAllButton());
     }

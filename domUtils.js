@@ -567,6 +567,20 @@ function createTrendingSearchesSection() {
     sortToggle.textContent = "\u2605";
     sortToggle.title = "Sortiert nach: Beliebtheit";
     titleRow.appendChild(sortToggle);
+
+    const lbToggle = document.createElement("button");
+    lbToggle.className = "spca-trending-sort-toggle";
+    lbToggle.textContent = "\u{1F3C6}";
+    lbToggle.title = "Angebots-Rangliste anzeigen";
+    lbToggle.style.marginLeft = "4px";
+    lbToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (typeof window.spca !== "undefined" && typeof window.spca.showTrendLeaderboard === "function") {
+            window.spca.showTrendLeaderboard();
+        }
+    });
+    titleRow.appendChild(lbToggle);
+
     section.appendChild(titleRow);
 
     const tagsContainer = document.createElement("div");
