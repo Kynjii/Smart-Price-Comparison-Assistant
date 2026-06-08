@@ -141,7 +141,7 @@ function buildDOM(items) {
     board.appendChild(listScroll);
     overlay.appendChild(board);
 
-    applyTheme(board);
+    applyLeaderboardTheme(board);
 
     return overlay;
 }
@@ -155,7 +155,7 @@ function updateSortPills(sortBar, active) {
     else pills[1].classList.add("active");
 }
 
-function applyTheme(board) {
+function applyLeaderboardTheme(board) {
     if (!board) return;
 
     var sysTheme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -223,7 +223,7 @@ function renderPodium(board, items) {
         var trendStr = item.percentIncrease != null ? formatTrend(item.percentIncrease) : "";
         var searchURL = "https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q=" + encodeURIComponent(item.query);
 
-        spot.innerHTML = '<div class="spca-lb-medal">' + (medals[spotIdx] || "\u{1F3C5}") + "</div>" + '<div class="spca-lb-podium-shop" title="' + esc(item.query) + '">' + esc(trunc(item.query, 18)) + "</div>" + '<div class="spca-lb-podium-price">\u2605 ' + (item.popularity || 0) + "</div>" + (trendStr ? '<div class="spca-lb-podium-trend ' + trendClass + '">' + trendStr + "</div>" : "") + '<div class="spca-lb-podium-bar"></div>';
+        spot.innerHTML = '<div class="spca-lb-medal">' + (medals[spotIdx] || "\u{1F3C5}") + "</div>" + '<div class="spca-lb-podium-shop" title="' + esc(item.query) + '">' + esc(item.query) + "</div>" + '<div class="spca-lb-podium-price">\u2605 ' + (item.popularity || 0) + "</div>" + (trendStr ? '<div class="spca-lb-podium-trend ' + trendClass + '">' + trendStr + "</div>" : "") + '<div class="spca-lb-podium-bar"></div>';
         spot.addEventListener("click", function () {
             window.open(searchURL, "_blank");
         });
@@ -311,11 +311,6 @@ function esc(str) {
     var div = document.createElement("div");
     div.textContent = str;
     return div.innerHTML;
-}
-
-function trunc(str, maxLen) {
-    if (!str || str.length <= maxLen) return str || "";
-    return str.substring(0, maxLen - 1) + "\u2026";
 }
 
 window.spca.showTrendLeaderboard = showTrendLeaderboard;
